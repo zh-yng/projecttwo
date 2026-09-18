@@ -9,6 +9,29 @@ class User(AbstractUser):
         RECRUITER = "RECRUITER", "Recruiter"
         ADMIN = "ADMIN", "Administrator"
 
+    class EducationType(models.TextChoices):
+        HIGH_SCHOOL = "HIGH_SCHOOL", "High School"
+        BACHELORS = "BACHELORS", "Bachelors"
+        MASTERS = "MASTERS", "Masters"
+        PHD = "PHD", "PhD"
+
+    class WorkExperienceType(models.TextChoices):
+        INTERN = "INTERN", "Intern"
+        ENTRY_LEVEL = "ENTRY_LEVEL", "Entry-Level"
+        MID_LEVEL = "MID_LEVEL", "Mid-Level"
+        SENIOR = "SENIOR", "Senior"
+        LEAD = "LEAD", "Lead"
+
+    headline=models.CharField(max_length=255, blank=True, null=True)
+    skills=models.JSONField(blank=True, null=True)
+
+    # JSON field. remember to specify the structure (i.e. institution + education type)!!!
+    education=models.JSONField(blank=True, null=True)
+
+    # same goes for this one. a todo is to specify structure of each entry
+    work_experience=models.JSONField(blank=True, null=True)
+    links=models.JSONField(blank=True, null=True)
+
     role = models.CharField(
         max_length=20, 
         choices=Role.choices, 
