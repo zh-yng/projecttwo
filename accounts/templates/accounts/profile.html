@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-5">
+        <div class="col-lg-7">
+            <h1>Create your profile</h1>
+            <p class="text-muted">Help recruiters understand your experience and strengths.</p>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label d-block" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                    {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                </div>
+                {% endfor %}
+                <button class="btn btn-primary" type="submit">Save profile</button>
+            </form>
+        </div>
+        <div class="col-lg-5">
+            <h2>{{ profile_user.get_full_name|default:profile_user.username }}</h2>
+            {% if profile_user.headline %}<p class="lead">{{ profile_user.headline }}</p>{% endif %}
+            {% if profile_user.skills %}
+            <h3>Skills</h3>
+            <p>{{ profile_user.skills|join:", " }}</p>
+            {% endif %}
+            {% if profile_user.education %}
+            <h3>Education</h3>
+            <ul>
+                {% for entry in profile_user.education %}
+                <li>{{ entry.degree }}{% if entry.institution %}, {{ entry.institution }}{% endif %}{% if entry.graduation_year %} ({{ entry.graduation_year }}){% endif %}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if profile_user.work_experience %}
+            <h3>Work experience</h3>
+            <ul>
+                {% for entry in profile_user.work_experience %}
+                <li><strong>{{ entry.title }}</strong>{% if entry.company %} at {{ entry.company }}{% endif %}{% if entry.dates %} &mdash; {{ entry.dates }}{% endif %}{% if entry.description %}<br>{{ entry.description }}{% endif %}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if profile_user.links %}
+            <h3>Links</h3>
+            <ul>
+                {% for link in profile_user.links %}
+                <li><a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a></li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

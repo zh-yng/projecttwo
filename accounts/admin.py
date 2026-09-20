@@ -8,7 +8,13 @@ class CustomUserAdmin(UserAdmin):
     list_display = ["username", "email", "role", "is_active"]
     list_filter = ["role", "is_active"]
     actions = ["deactivate_users", "reactivate_users"]
-    fieldsets = UserAdmin.fieldsets + (("Role", {"fields": ["role"]}),)
+    fieldsets = UserAdmin.fieldsets + (
+        ("Role", {"fields": ["role"]}),
+        (
+            "Job seeker profile",
+            {"fields": ["headline", "skills", "education", "work_experience", "links"]},
+        ),
+    )
     add_fieldsets = UserAdmin.add_fieldsets + (("Role", {"fields": ["role"]}),)
 
     @admin.action(description="Deactivate selected users")
@@ -18,5 +24,5 @@ class CustomUserAdmin(UserAdmin):
 
     @admin.action(description="Reactivate selected users")
     def reactivate_users(self, request, queryset):
-        updated = queryset.updated(is_active=True)
+        updated = queryset.update(is_active=True)
         self.message_user(request, f"Reactivated {updated} user(s).")
