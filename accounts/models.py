@@ -23,6 +23,7 @@ class User(AbstractUser):
         LEAD = "LEAD", "Lead"
 
     headline=models.CharField(max_length=255, blank=True, null=True)
+    middle_name = models.CharField(max_length=150, blank=True)
     skills=models.JSONField(blank=True, null=True)
 
     # JSON field. remember to specify the structure (i.e. institution + education type)!!!
@@ -31,6 +32,13 @@ class User(AbstractUser):
     # same goes for this one. a todo is to specify structure of each entry
     work_experience=models.JSONField(blank=True, null=True)
     links=models.JSONField(blank=True, null=True)
+
+    profile_visible_to_recruiters = models.BooleanField(default=True)
+    show_headline = models.BooleanField(default=True)
+    show_skills = models.BooleanField(default=True)
+    show_education = models.BooleanField(default=True)
+    show_work_experience = models.BooleanField(default=True)
+    show_links = models.BooleanField(default=True)
 
     role = models.CharField(
         max_length=20, 
@@ -43,6 +51,11 @@ class User(AbstractUser):
             self.is_staff = True 
             self.is_superuser = True 
         super().save(*args, **kwargs)
+
+    def get_full_name(self):
+        return " ".join(
+            part for part in (self.first_name, self.middle_name, self.last_name) if part
+        )
 
     def __str__(self):
         return f" {self.username} ({self.get_role_display()})"

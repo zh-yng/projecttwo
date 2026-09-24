@@ -6,6 +6,22 @@ from django.utils.safestring import mark_safe
 
 
 class ProfileForm(forms.ModelForm):
+    username = forms.CharField(disabled=True, required=False)
+    first_name = forms.CharField(required=True)
+    middle_name = forms.CharField(required=False)
+    last_name = forms.CharField(required=True)
+    profile_visible_to_recruiters = forms.BooleanField(
+        required=False,
+        label="Make my profile visible to recruiters",
+    )
+    show_headline = forms.BooleanField(required=False, label="Show headline")
+    show_skills = forms.BooleanField(required=False, label="Show skills")
+    show_education = forms.BooleanField(required=False, label="Show education")
+    show_work_experience = forms.BooleanField(
+        required=False,
+        label="Show work experience",
+    )
+    show_links = forms.BooleanField(required=False, label="Show links")
     skills = forms.CharField(
         required=False,
         widget=forms.HiddenInput(),
@@ -30,7 +46,23 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ("headline", "skills", "education", "work_experience", "links")
+        fields = (
+            "username",
+            "first_name",
+            "middle_name",
+            "last_name",
+            "headline",
+            "skills",
+            "education",
+            "work_experience",
+            "links",
+            "profile_visible_to_recruiters",
+            "show_headline",
+            "show_skills",
+            "show_education",
+            "show_work_experience",
+            "show_links",
+        )
         widgets = {
             "headline": forms.TextInput(
                 attrs={"placeholder": "e.g. Full-stack developer seeking new opportunities"}

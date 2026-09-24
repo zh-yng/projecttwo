@@ -35,7 +35,8 @@
                     {% endif %}
                     <a class="nav-link" href="{% url 'jobs:list' %}">Jobs</a>
                     {% if user.is_authenticated and user.role == "RECRUITER" %}
-                    <a class="nav-link" href="{% url 'jobs:dashboard' %}">Recruit</a>
+                    <a class="nav-link" href="{% url 'jobs:dashboard' %}">Hiring Dashboard</a>
+                    <a class="nav-link" href="{% url 'accounts:recruiter_candidates' %}">Candidates</a>
                     {% endif %}
                     {% if user.is_authenticated %}
                     <a class="nav-link" href="{% url 'accounts:logout' %}">Logout ({{ user.username }})</a>
