@@ -6,22 +6,83 @@
         <div class="col-lg-7">
             <h1>Create your profile</h1>
             <p class="text-muted">Help recruiters understand your experience and strengths.</p>
-            <form method="post" novalidate class="profile-form">
+
+            <form method="post" novalidate class="profile-form" id="profile-form">
                 {% csrf_token %}
                 {% for field in form %}
+                {% if field.name == 'headline' %}
                 <div class="mb-3">
                     <label class="form-label d-block" for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
-                    {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                    {% endif %}
-                    {% for error in field.errors %}
-                    <div class="text-danger">{{ error }}</div>
-                    {% endfor %}
+                    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                    {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
                 </div>
+                {% endif %}
                 {% endfor %}
-                <button class="btn btn-primary" type="submit">Save profile</button>
             </form>
+
+            <div class="mb-3">
+                <label class="form-label d-block">Skills</label>
+                <form method="post" action="{% url 'accounts:add_skill' %}" class="tag-entry">
+                    {% csrf_token %}
+                    <input type="text" name="skill" class="tag-entry-input" placeholder="Type a skill...">
+                    <button type="submit" class="btn btn-primary btn-sm">+</button>
+                </form>
+                <ul class="tag-list">
+                    {% for skill in profile_user.skills %}
+                    <li class="tag-pill">
+                        <span>{{ skill }}</span>
+                        <form method="post" action="{% url 'accounts:remove_skill' forloop.counter0 %}"
+                            class="tag-remove-form">
+                            {% csrf_token %}
+                            <button type="submit" class="tag-remove"><i class="fas fa-times"></i></button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label d-block">Education</label>
+                <details class="entry-details">
+                    <summary class="btn, btn-primary btn-sm">+</summary>
+                    <form method="post" action="{% url 'accounts:add_education' %}" class="entry-form mt-2">
+                        {% csrf_token %}
+                        <input type="text" name="degree" placeholder="Degree Name" class="mb-2">
+                        <input type="text" name="institution" placeholder="School Name" class="mb-2">
+                        <input type="text" name="graduation_year" placeholder="Graduation Year" class="mb-2">
+                        <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                    </form>
+                </details>
+                <ul class="stacked-list">
+                    {% for entry in profile_user.education %}
+                    <li class="stacked-pill">
+                        <div>
+                            <strong>{{ entry.degree }}</strong>{% if entry.institution %}, {{ entry.institution }}
+                            {% endif %}
+                            {% if entry.graduation_year %} ({{ entry.graduation_year }}){% endif %}
+                        </div>
+                        <form method="post" action="{% url 'accounts:remove_education' forloop.counter0 %}"
+                            class="tag-remove-form">
+                            {% csrf_token %}
+                            <button type="submit" class="tag-remove"><i class="fas fa-times"></i></button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {% for field in form %}
+            {% if field.name != 'headline' and field.name != 'skills' and field.name != 'education' %}
+            <div class="mb-3">
+                <label class="form-label d-block" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+            </div>
+            {% endif %}
+            {% endfor %}
+            <button class="btn btn-primary" type="submit" form="profile-form">Save profile</button>
         </div>
         <div class="col-lg-5">
             <div class="card h-100 shadow-sm">
@@ -31,42 +92,30 @@
                 </div>
                 <div class="card-body">
                     {% if profile_user.headline %}<p class="lead">{{ profile_user.headline }}</p>{% endif %}
-                    {% if profile_user.skills %}
-                    <h3 class="h5">Skills</h3>
-                    <p>{{ profile_user.skills|join:", " }}</p>
-                    {% endif %}
-                    {% if profile_user.education %}
-                    <h3 class="h5">Education</h3>
-                    <ul>
-                        {% for entry in profile_user.education %}
-                        <li>
-                            {{ entry.degree }}{% if entry.institution %}, {{ entry.institution }}{% endif %}
-                            {% if entry.graduation_year %} ({{ entry.graduation_year }}){% endif %}
+                    <h3 class="h5">My applications</h3>
+                    {% if applications %}
+                    <ul class="list-unstyled mb-0">
+                        {% for application in applications %}
+                        <li class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <strong>{{ application.job.title }}</strong>
+                                <div class="text-muted small">{{ application.created_at|date:"M j, Y" }}</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-secondary">{{ application.display_status }}</span>
+                                <form method="post" action="{% url 'jobs:withdraw_application' application.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Withdraw</button>
+                                </form>
+                            </div>
                         </li>
                         {% endfor %}
                     </ul>
-                    {% endif %}
-                    {% if profile_user.work_experience %}
-                    <h3 class="h5">Work experience</h3>
-                    <ul>
-                        {% for entry in profile_user.work_experience %}
-                        <li><strong>{{ entry.title }}</strong>{% if entry.company %} at {{ entry.company }}{% endif %}
-                            {% if entry.dates %} &mdash; {{ entry.dates }}{% endif %}{% if entry.description %}<br>
-                            {{ entry.description }}{% endif %}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                    {% if profile_user.links %}
-                    <h3 class="h5">Links</h3>
-                    <ul class="mb-0">
-                        {% for link in profile_user.links %}
-                        <li><a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a></li>
-                        {% endfor %}
-                    </ul>
+                    {% else %}
+                    <p class="text-muted mb-0">Go apply to some jobs you bum</p>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock content %}
+    {% endblock content %}

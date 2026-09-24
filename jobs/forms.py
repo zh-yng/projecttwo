@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Job
+from .models import Job, Application
 
 
 class JobForm(forms.ModelForm):
@@ -32,3 +32,14 @@ class JobForm(forms.ModelForm):
             raise forms.ValidationError("The minimum salary cannot exceed the maximum salary.")
 
         return cleaned_data
+
+class ApplicationForm(forms.ModelForm):
+    class Meta:
+        model = Application
+        fields = ("full_name", "email", "phone", "skills", "education", "work_experience", "cover_letter")
+        widgets = {
+            "skills": forms.Textarea(attrs={"rows": 2}),
+            "education": forms.Textarea(attrs={"rows": 3}),
+            "work_experience": forms.Textarea(attrs={"rows": 3}),
+            "cover_letter": forms.Textarea(attrs={"rows": 6}),
+        }
