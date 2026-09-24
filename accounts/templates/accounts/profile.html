@@ -6,22 +6,83 @@
         <div class="col-lg-7">
             <h1>Create your profile</h1>
             <p class="text-muted">Help recruiters understand your experience and strengths.</p>
-            <form method="post" novalidate class="profile-form">
+
+            <form method="post" novalidate class="profile-form" id="profile-form">
                 {% csrf_token %}
                 {% for field in form %}
+                {% if field.name == 'headline' %}
                 <div class="mb-3">
                     <label class="form-label d-block" for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
-                    {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                    {% endif %}
-                    {% for error in field.errors %}
-                    <div class="text-danger">{{ error }}</div>
-                    {% endfor %}
+                    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                    {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
                 </div>
+                {% endif %}
                 {% endfor %}
-                <button class="btn btn-primary" type="submit">Save profile</button>
             </form>
+
+            <div class="mb-3">
+                <label class="form-label d-block">Skills</label>
+                <form method="post" action="{% url 'accounts:add_skill' %}" class="tag-entry">
+                    {% csrf_token %}
+                    <input type="text" name="skill" class="tag-entry-input" placeholder="Type a skill...">
+                    <button type="submit" class="btn btn-primary btn-sm">+</button>
+                </form>
+                <ul class="tag-list">
+                    {% for skill in profile_user.skills %}
+                    <li class="tag-pill">
+                        <span>{{ skill }}</span>
+                        <form method="post" action="{% url 'accounts:remove_skill' forloop.counter0 %}"
+                            class="tag-remove-form">
+                            {% csrf_token %}
+                            <button type="submit" class="tag-remove"><i class="fas fa-times"></i></button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label d-block">Education</label>
+                <details class="entry-details">
+                    <summary class="btn, btn-primary btn-sm">+</summary>
+                    <form method="post" action="{% url 'accounts:add_education' %}" class="entry-form mt-2">
+                        {% csrf_token %}
+                        <input type="text" name="degree" placeholder="Degree Name" class="mb-2">
+                        <input type="text" name="institution" placeholder="School Name" class="mb-2">
+                        <input type="text" name="graduation_year" placeholder="Graduation Year" class="mb-2">
+                        <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                    </form>
+                </details>
+                <ul class="stacked-list">
+                    {% for entry in profile_user.education %}
+                    <li class="stacked-pill">
+                        <div>
+                            <strong>{{ entry.degree }}</strong>{% if entry.institution %}, {{ entry.institution }}
+                            {% endif %}
+                            {% if entry.graduation_year %} ({{ entry.graduation_year }}){% endif %}
+                        </div>
+                        <form method="post" action="{% url 'accounts:remove_education' forloop.counter0 %}"
+                            class="tag-remove-form">
+                            {% csrf_token %}
+                            <button type="submit" class="tag-remove"><i class="fas fa-times"></i></button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {% for field in form %}
+            {% if field.name != 'headline' and field.name != 'skills' and field.name != 'education' %}
+            <div class="mb-3">
+                <label class="form-label d-block" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+            </div>
+            {% endif %}
+            {% endfor %}
+            <button class="btn btn-primary" type="submit" form="profile-form">Save profile</button>
         </div>
         <div class="col-lg-5">
             <div class="card h-100 shadow-sm">
@@ -68,5 +129,4 @@
             </div>
         </div>
     </div>
-</div>
-{% endblock content %}
+    {% endblock content %}

@@ -8,7 +8,8 @@
 }
 
 .profile-form input,
-.profile-form textarea {
+.profile-form textarea,
+.tag-entry-input {
     font-family: inherit;
     resize: none;
     width: 100%;
@@ -19,6 +20,103 @@
 }
 
 .profile-form input::placeholder,
-.profile-form textarea::placeholder {
+.profile-form textarea::placeholder,
+.tag-entry-input::placeholder {
     color: #9ca3af;
+}
+
+.tag-entry {
+    display: flex;
+    gap: 0.5rem;
+    max-width: 300px;
+}
+
+.tag-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0.75rem 0 0;
+}
+
+.tag-pill {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #eef2ff;
+    color: #4338ca;
+    border-radius: 999px;
+    padding: 0.35rem 1.75rem 0.35rem 0.85rem;
+    font-size: 0.875rem;
+}
+
+.tag-remove-form {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.tag-remove {
+    border: none;
+    background: none;
+    padding: 0;
+    line-height: 1;
+    color: #4338ca;
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.tag-pill:hover .tag-remove {
+    opacity: 1;
+}
+
+.entry-details summary {
+    list-style: none;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.entry-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.entry-form {
+    display: flex;
+    flex-direction: column;
+    max-width: 300px;
+}
+
+.stacked-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0.75rem 0 0;
+}
+
+.stacked-pill {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #eef2ff;
+    color: #4338ca;
+    border-radius: 12px;
+    padding: 0.5rem 1.75rem 0.5rem 0.85rem;
+    font-size: 0.875rem;
+}
+
+.stacked-pill .tag-remove-form {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.stacked-pill:hover .tag-remove {
+    opacity: 1;
 }

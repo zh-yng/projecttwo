@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 class ProfileForm(forms.ModelForm):
     skills = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={"rows": 3}),
+        widget=forms.HiddenInput(),
         help_text="Comma-separated skills (e.g. Python, Music Production, React).",
     )
     education = forms.CharField(
@@ -110,15 +110,16 @@ class CustomUserCreationForm(UserCreationForm):
             (User.Role.RECRUITER, User.Role.RECRUITER.label),
         ),
         initial=User.Role.JOB_SEEKER,
+        widget=forms.Select(attrs={"class": "form-control"}),
     )
 
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ("username", "role")
+        fields = ("username", "first_name", "last_name", "role")
 
     def __init__(self, *args, **kwargs):
         super(CustomUserCreationForm, self).__init__(*args, **kwargs)
-        for fieldname in ['username', 'password1', 'password2']:
+        for fieldname in ['username', 'first_name', 'last_name', 'password1', 'password2']:
             self.fields[fieldname].help_text = None
             self.fields[fieldname].widget.attrs.update({'class': 'form-control'})
 
