@@ -104,14 +104,30 @@ class ProfileForm(forms.ModelForm):
         return links
 
 class CustomUserCreationForm(UserCreationForm):
+    role = forms.ChoiceField(
+        choices=(
+            (User.Role.JOB_SEEKER, User.Role.JOB_SEEKER.label),
+            (User.Role.RECRUITER, User.Role.RECRUITER.label),
+        ),
+        initial=User.Role.JOB_SEEKER,
+    )
+
     class Meta(UserCreationForm.Meta):
         model = User
+        fields = ("username", "role")
 
     def __init__(self, *args, **kwargs):
         super(CustomUserCreationForm, self).__init__(*args, **kwargs)
         for fieldname in ['username', 'password1', 'password2']:
             self.fields[fieldname].help_text = None
             self.fields[fieldname].widget.attrs.update({'class': 'form-control'})
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.role = self.cleaned_data["role"]
+        if commit:
+            user.save()
+        return user
 
 class CustomErrorList(ErrorList):
     def __str__(self):

@@ -60,4 +60,6 @@ def login(request):
             return render(request, 'accounts/login.html', {'template_data': template_data})
         else:
             auth_login(request, user)
+            if user.role == User.Role.RECRUITER:
+                return redirect('jobs:dashboard')
             return redirect('accounts:profile')

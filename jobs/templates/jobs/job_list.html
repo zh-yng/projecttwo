@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Open jobs</h1>
+            <p class="text-muted mb-0">Find your next opportunity.</p>
+        </div>
+        {% if user.is_authenticated and user.role == "RECRUITER" %}
+        <a class="btn btn-dark" href="{% url 'jobs:create' %}">Post a job</a>
+        {% endif %}
+    </div>
+    {% for job in jobs %}
+    <article class="card shadow-sm mb-3">
+        <div class="card-body">
+            <h2 class="h4"><a class="text-decoration-none" href="{% url 'jobs:detail' job.pk %}">{{ job.title }}</a></h2>
+            <p class="mb-2">{{ job.get_employment_type_display }}{% if job.location %} · {{ job.location }}{% endif %}{% if job.is_remote %} · Remote{% endif %}</p>
+            <p class="text-muted mb-0">Posted by {{ job.recruiter.username }}</p>
+        </div>
+    </article>
+    {% empty %}
+    <p>No open jobs are available right now.</p>
+    {% endfor %}
+</div>
+{% endblock content %}

@@ -75,4 +75,37 @@ class ProfileViewTests(TestCase):
 
         self.assertRedirects(response, reverse("home.index"))
 
+
+class RecruiterAccountTests(TestCase):
+    def test_signup_can_create_recruiter(self):
+        response = self.client.post(
+            reverse("accounts:signup"),
+            {
+                "username": "new-recruiter",
+                "role": User.Role.RECRUITER,
+                "password1": "strong-test-password-123",
+                "password2": "strong-test-password-123",
+            },
+        )
+
+        self.assertRedirects(response, reverse("accounts:login"))
+        self.assertEqual(
+            User.objects.get(username="new-recruiter").role,
+            User.Role.RECRUITER,
+        )
+
+    def test_recruiter_login_redirects_to_dashboard(self):
+        User.objects.create_user(
+            username="recruiter",
+            password="test-password",
+            role=User.Role.RECRUITER,
+        )
+
+        response = self.client.post(
+            reverse("accounts:login"),
+            {"username": "recruiter", "password": "test-password"},
+        )
+
+        self.assertRedirects(response, reverse("jobs:dashboard"))
+
 # Create your tests here.
