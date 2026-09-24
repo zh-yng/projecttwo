@@ -5,6 +5,7 @@ from django.contrib.auth import login as auth_login, authenticate, logout as aut
 
 from .forms import ProfileForm, CustomUserCreationForm, CustomErrorList
 from .models import User
+from jobs.models import Application
 
 
 @login_required
@@ -22,10 +23,17 @@ def profile(request):
     else:
         form = ProfileForm(instance=request.user)
 
+    applications = (
+        Application.objects.filter(applicant=request.user)
+        .exclude(status=Application.Status.WITHDRAWN)
+        .select_related("job")
+        .order_by("-created_at")
+    )
+
     return render(
         request,
         "accounts/profile.html",
-        {"form": form, "profile_user": request.user},
+        {"form": form, "profile_user": request.user, "applications": applications},
     )
 
 

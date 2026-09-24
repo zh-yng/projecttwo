@@ -44,3 +44,43 @@ class Job(models.Model):
 
     def __str__(self):
         return self.title
+
+class Application(models.Model):
+    class Status(models.TextChoices):
+        SUBMITTED = "SUBMITTED", "Submitted"
+        REVIEWED = "REVIEWED", "Reviewed"
+        REJECTED = "REJECTED", "Rejected"
+        ACCEPTED = "ACCEPTED", "Accepted"
+        WITHDRAWN = "WITHDRAWN", "Withdrawn"
+
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="applications")
+    applicant = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="applications",
+    )
+    full_name = models.CharField(max_length=200)
+    email = models.EmailField()
+    phone = models.CharField(max_length=30, blank=True)
+    skills = models.TextField(blank=True)
+    education = models.TextField(blank=True)
+    work_experience = models.TextField(blank=True)
+    cover_letter = models.TextField(blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.SUBMITTED)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def display_status(self):
+        if self.status == self.Status.WITHDRAWN:
+            return self.get_status_display()
+        if self.job.status == Job.Status.CLOSED:
+            return "Closed"
+        return self.get_status_display()
+
+    class Meta:
+        unique_together = ("job", "applicant")
+
+    def __str__(self):
+        return f"{self.applicant} -> {self.job}"
+

@@ -9,8 +9,8 @@ from django.utils import timezone
 
 from accounts.models import User
 
-from .forms import JobForm
-from .models import Job
+from .forms import JobForm, ApplicationForm
+from .models import Job, Application
 
 
 def recruiter_required(view_func):
@@ -38,8 +38,21 @@ def job_list(request):
 
 def job_detail(request, pk):
 	job = get_object_or_404(_active_jobs(), pk=pk)
-	return render(request, "jobs/job_detail.html", {"job": job})
+	has_applied = (
+		request.user.is_authenticated
+		and Application.objects.filter(job=job, applicant=request.user).exists()
+	)
+	return render(request, "jobs/job_detail.html", {"job": job, "has_applied": has_applied})
 
+@login_required
+def withdraw_application(request, pk):
+	if request.method != "POST":
+		raise Http404
+	application = get_object_or_404(Application, pk=pk, applicant=request.user)
+	application.status = Application.Status.WITHDRAWN
+	application.save(update_fields=("status", "updated_at"))
+	messages.success(request, "Your application has been withdrawn.")
+	return redirect("accounts:profile")
 
 @recruiter_required
 def recruiter_dashboard(request):
@@ -95,4 +108,35 @@ def close_job(request, pk):
 	job.save(update_fields=("status", "updated_at"))
 	messages.success(request, "The job has been closed.")
 	return redirect("jobs:dashboard")
-from django.shortcuts import render
+
+@login_required
+def apply_to_job(request, pk):
+	job = get_object_or_404(_active_jobs(), pk=pk)
+	existing = Application.objects.filter(job=job, applicant=request.user).first()
+	if existing:
+		messages.info(request, "You already applied for this position.")
+		return redirect("jobs:detail", pk=pk)
+
+	if request.method == "POST":
+		form = ApplicationForm(request.POST)
+		if form.is_valid():
+			application = form.save(commit=False)
+			application.job = job
+			application.applicant = request.user
+			application.save()
+			messages.success(request, "Application submitted.")
+			return redirect("jobs:detail", pk=pk)
+
+	else:
+		user = request.user
+		form = ApplicationForm(initial={
+			"full_name":f"{user.first_name} {user.last_name}".strip() or user.username,
+			"email": user.email,
+			"skills": ", ".join(user.skills or []),
+			"education": "\n".join(
+				f"{e.get('degree')} - {e.get('institution')} ({e.get('graduation_year')})"
+				for e in (user.education or [])
+			),
+			"work_experience": "\n".join(str(w) for w in (user.work_experience or [])),
+		})
+	return render(request, "jobs/application_form.html", {"form": form, "job": job})

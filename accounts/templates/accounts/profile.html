@@ -92,38 +92,27 @@
                 </div>
                 <div class="card-body">
                     {% if profile_user.headline %}<p class="lead">{{ profile_user.headline }}</p>{% endif %}
-                    {% if profile_user.skills %}
-                    <h3 class="h5">Skills</h3>
-                    <p>{{ profile_user.skills|join:", " }}</p>
-                    {% endif %}
-                    {% if profile_user.education %}
-                    <h3 class="h5">Education</h3>
-                    <ul>
-                        {% for entry in profile_user.education %}
-                        <li>
-                            {{ entry.degree }}{% if entry.institution %}, {{ entry.institution }}{% endif %}
-                            {% if entry.graduation_year %} ({{ entry.graduation_year }}){% endif %}
+                    <h3 class="h5">My applications</h3>
+                    {% if applications %}
+                    <ul class="list-unstyled mb-0">
+                        {% for application in applications %}
+                        <li class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <strong>{{ application.job.title }}</strong>
+                                <div class="text-muted small">{{ application.created_at|date:"M j, Y" }}</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-secondary">{{ application.display_status }}</span>
+                                <form method="post" action="{% url 'jobs:withdraw_application' application.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Withdraw</button>
+                                </form>
+                            </div>
                         </li>
                         {% endfor %}
                     </ul>
-                    {% endif %}
-                    {% if profile_user.work_experience %}
-                    <h3 class="h5">Work experience</h3>
-                    <ul>
-                        {% for entry in profile_user.work_experience %}
-                        <li><strong>{{ entry.title }}</strong>{% if entry.company %} at {{ entry.company }}{% endif %}
-                            {% if entry.dates %} &mdash; {{ entry.dates }}{% endif %}{% if entry.description %}<br>
-                            {{ entry.description }}{% endif %}</li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                    {% if profile_user.links %}
-                    <h3 class="h5">Links</h3>
-                    <ul class="mb-0">
-                        {% for link in profile_user.links %}
-                        <li><a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a></li>
-                        {% endfor %}
-                    </ul>
+                    {% else %}
+                    <p class="text-muted mb-0">Go apply to some jobs you bum</p>
                     {% endif %}
                 </div>
             </div>
