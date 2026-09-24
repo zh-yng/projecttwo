@@ -61,3 +61,65 @@ def login(request):
         else:
             auth_login(request, user)
             return redirect('accounts:profile')
+
+@login_required
+def add_skill(request):
+    if request.method == 'POST':
+        skill = request.POST.get('skill', '').strip()
+        skills = request.user.skills or []
+        if skill and skill not in skills:
+            skills.append(skill)
+            request.user.skills = skills
+            request.user.save()
+    return redirect('accounts:profile')
+
+@login_required
+def remove_skill(request, index):
+    if request.method == 'POST':
+        skills = request.user.skills or []
+        if 0 <= index < len(skills):
+            skills.pop(index)
+            request.user.skills = skills
+            request.user.save()
+    return redirect('accounts:profile')
+
+@login_required
+def add_education(request):
+    if request.method == 'POST':
+        degree = request.POST.get('degree', '').strip()
+        institution = request.POST.get('institution', '').strip()
+        graduation_year = request.POST.get('graduation_year', '').strip()
+        if degree:
+            entries = request.user.education or []
+            entries.append({
+                'degree': degree,
+                'institution': institution,
+                'graduation_year': graduation_year,
+            })
+            request.user.education = entries
+            request.user.save()
+        return redirect('accounts:profile')
+
+@login_required
+def remove_education(request, index):
+    if request.method == 'POST':
+        entries = request.user.education or []
+        if 0 <= index < len(entries):
+            entries.pop(index)
+            request.user.education = entries
+            request.user.save()
+    return redirect('accounts:profile')
+
+@login_required
+def edit_education(request, index):
+    if request.method == 'POST':
+        entries = request.user.education or []
+        if 0 <= index < len(entries):
+            entries[index] = {
+                'degree': request.POST.get('degree', '').strip(),
+                'institution': request.POST.get('institution', '').strip(),
+                'graduation_year': request.POST.get('graduation_year', '').strip(),
+            }
+            request.user.education = entries
+            request.user.save()
+    return redirect('accounts:profile')
