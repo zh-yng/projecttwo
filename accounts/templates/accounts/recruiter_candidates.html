@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Candidate profiles</h1>
+            <p class="text-muted mb-0">Job seekers who have made their profiles visible to recruiters.</p>
+        </div>
+        <a class="btn btn-outline-dark" href="{% url 'jobs:dashboard' %}">Back to dashboard</a>
+    </div>
+    <div class="row g-4">
+        {% for candidate in candidates %}
+        <div class="col-md-6 col-xl-4">
+            <article class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4">{{ candidate.get_full_name|default:candidate.username }}</h2>
+                    {% if candidate.visible_headline %}<p class="text-muted">{{ candidate.visible_headline }}</p>{% endif %}
+                    {% if candidate.visible_skills %}<p>{{ candidate.visible_skills|join:", " }}</p>{% endif %}
+                    <a class="btn btn-dark" href="{% url 'accounts:recruiter_profile' candidate.pk %}">View profile</a>
+                </div>
+            </article>
+        </div>
+        {% empty %}
+        <p>No visible candidate profiles are available.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock content %}
