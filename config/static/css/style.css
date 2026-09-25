@@ -7,7 +7,7 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-.profile-form input,
+.profile-form input:not([type="checkbox"]),
 .profile-form textarea,
 .tag-entry-input {
     font-family: inherit;
@@ -19,10 +19,34 @@
     background: #f9fafb;
 }
 
-.profile-form input::placeholder,
+.profile-form input:not([type="checkbox"])::placeholder,
 .profile-form textarea::placeholder,
 .tag-entry-input::placeholder {
     color: #9ca3af;
+}
+
+.profile-checkbox {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.profile-form .profile-checkbox input[type="checkbox"] {
+    display: inline-block;
+    width: auto;
+    max-width: none;
+    inline-size: auto;
+    padding: 0;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.profile-checkbox label {
+    display: inline-block;
+    margin: 0;
+    line-height: 1.2;
 }
 
 .tag-entry {
