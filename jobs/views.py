@@ -67,6 +67,87 @@ def recruiter_dashboard(request):
 
 
 @recruiter_required
+def application_board(request, pk):
+	job = get_object_or_404(Job, pk=pk, recruiter=request.user)
+	applications = (
+		Application.objects.filter(job=job)
+		.exclude(status=Application.Status.DELETED)
+		.exclude(status=Application.Status.WITHDRAWN)
+		.select_related("applicant")
+		.order_by("-updated_at")
+	)
+	stage_definitions = [
+		(Application.Status.APPLIED, "Applied", (Application.Status.APPLIED,)),
+		(Application.Status.SCREENED, "Review", (Application.Status.SCREENED,)),
+		(Application.Status.INTERVIEWED, "Interview", (Application.Status.INTERVIEWED,)),
+		(
+			Application.Status.OFFERED,
+			"Offer",
+			(Application.Status.OFFERED, Application.Status.HIRED),
+		),
+		(Application.Status.CLOSED, "Closed", (Application.Status.CLOSED,)),
+	]
+	stages = [
+		{
+			"key": stage,
+			"label": label,
+			"applications": applications.filter(status__in=statuses),
+		}
+		for stage, label, statuses in stage_definitions
+	]
+	return render(
+		request,
+		"jobs/application_board.html",
+		{
+			"job": job,
+			"stages": stages,
+		},
+	)
+
+
+@recruiter_required
+def update_application_status(request, pk):
+	if request.method != "POST":
+		raise Http404
+	application = get_object_or_404(
+		Application,
+		pk=pk,
+		job__recruiter=request.user,
+	)
+	status = request.POST.get("status")
+	valid_statuses = {
+		Application.Status.APPLIED,
+		Application.Status.SCREENED,
+		Application.Status.INTERVIEWED,
+		Application.Status.OFFERED,
+		Application.Status.HIRED,
+		Application.Status.CLOSED,
+	}
+	if status not in valid_statuses:
+		messages.error(request, "That hiring stage is not available.")
+	else:
+		application.status = status
+		application.save(update_fields=("status", "updated_at"))
+		messages.success(request, "Applicant stage updated.")
+	return redirect("jobs:application_board", pk=application.job_id)
+
+
+@recruiter_required
+def delete_application(request, pk):
+	if request.method != "POST":
+		raise Http404
+	application = get_object_or_404(
+		Application,
+		pk=pk,
+		job__recruiter=request.user,
+	)
+	application.status = Application.Status.DELETED
+	application.save(update_fields=("status", "updated_at"))
+	messages.success(request, "The application was removed from the hiring board.")
+	return redirect("jobs:application_board", pk=application.job_id)
+
+
+@recruiter_required
 def create_job(request):
 	form = JobForm(request.POST or None)
 	if request.method == "POST" and form.is_valid():

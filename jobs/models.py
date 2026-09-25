@@ -47,11 +47,18 @@ class Job(models.Model):
 
 class Application(models.Model):
     class Status(models.TextChoices):
+        APPLIED = "APPLIED", "Applied"
+        SCREENED = "SCREENED", "Screened"
+        INTERVIEWED = "INTERVIEWED", "Interviewed"
+        OFFERED = "OFFERED", "Offered"
+        HIRED = "HIRED", "Hired"
+        CLOSED = "CLOSED", "Closed"
+        DELETED = "DELETED", "Deleted"
+        REJECTED = "REJECTED", "Rejected"
+        WITHDRAWN = "WITHDRAWN", "Withdrawn"
         SUBMITTED = "SUBMITTED", "Submitted"
         REVIEWED = "REVIEWED", "Reviewed"
-        REJECTED = "REJECTED", "Rejected"
         ACCEPTED = "ACCEPTED", "Accepted"
-        WITHDRAWN = "WITHDRAWN", "Withdrawn"
 
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="applications")
     applicant = models.ForeignKey(
@@ -66,21 +73,27 @@ class Application(models.Model):
     education = models.TextField(blank=True)
     work_experience = models.TextField(blank=True)
     cover_letter = models.TextField(blank=True)
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.SUBMITTED)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.APPLIED)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def display_status(self):
-        if self.status == self.Status.WITHDRAWN:
-            return self.get_status_display()
-        if self.job.status == Job.Status.CLOSED:
-            return "Closed"
-        return self.get_status_display()
+        status_labels = {
+            self.Status.APPLIED: "Applied",
+            self.Status.SCREENED: "Review",
+            self.Status.REVIEWED: "Review",
+            self.Status.INTERVIEWED: "Interview",
+            self.Status.OFFERED: "Offer",
+            self.Status.HIRED: "Offer",
+            self.Status.CLOSED: "Closed",
+            self.Status.SUBMITTED: "Applied",
+            self.Status.ACCEPTED: "Offer",
+        }
+        return status_labels.get(self.status, self.get_status_display())
 
     class Meta:
         unique_together = ("job", "applicant")
 
     def __str__(self):
         return f"{self.applicant} -> {self.job}"
-
