@@ -9,80 +9,104 @@
 
             <form method="post" novalidate class="profile-form" id="profile-form">
                 {% csrf_token %}
+                {{ form.skills.as_hidden }}
+                {{ form.education.as_hidden }}
+
                 {% for field in form %}
                 {% if field.name == 'headline' %}
-                <div class="mb-3">
-                    <label class="form-label d-block" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-                    {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
                 {% endif %}
                 {% endfor %}
-            </form>
 
-            <div class="mb-3">
-                <label class="form-label d-block">Skills</label>
-                <form method="post" action="{% url 'accounts:add_skill' %}" class="tag-entry">
-                    {% csrf_token %}
-                    <input type="text" name="skill" class="tag-entry-input" placeholder="Type a skill...">
-                    <button type="submit" class="btn btn-primary btn-sm">+</button>
-                </form>
-                <ul class="tag-list">
-                    {% for skill in profile_user.skills %}
-                    <li class="tag-pill">
-                        <span>{{ skill }}</span>
-                        <form method="post" action="{% url 'accounts:remove_skill' forloop.counter0 %}"
-                            class="tag-remove-form">
-                            {% csrf_token %}
-                            <button type="submit" class="tag-remove"><i class="fas fa-times"></i></button>
-                        </form>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label d-block">Education</label>
-                <details class="entry-details">
-                    <summary class="btn, btn-primary btn-sm">+</summary>
-                    <form method="post" action="{% url 'accounts:add_education' %}" class="entry-form mt-2">
-                        {% csrf_token %}
-                        <input type="text" name="degree" placeholder="Degree Name" class="mb-2">
-                        <input type="text" name="institution" placeholder="School Name" class="mb-2">
-                        <input type="text" name="graduation_year" placeholder="Graduation Year" class="mb-2">
-                        <button type="submit" class="btn btn-primary btn-sm">Add</button>
-                    </form>
-                </details>
-                <ul class="stacked-list">
-                    {% for entry in profile_user.education %}
-                    <li class="stacked-pill">
-                        <div>
-                            <strong>{{ entry.degree }}</strong>{% if entry.institution %}, {{ entry.institution }}
-                            {% endif %}
-                            {% if entry.graduation_year %} ({{ entry.graduation_year }}){% endif %}
+                {% for field in form %}
+                {% if field.name != 'headline' and field.name != 'skills' and field.name != 'education' %}
+                    {% if field.field.widget.input_type == 'checkbox' %}
+                        <div class="profile-checkbox">
+                            {{ field }}
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
                         </div>
-                        <form method="post" action="{% url 'accounts:remove_education' forloop.counter0 %}"
-                            class="tag-remove-form">
-                            {% csrf_token %}
-                            <button type="submit" class="tag-remove"><i class="fas fa-times"></i></button>
-                        </form>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
+                    {% else %}
+                        <div class="mb-3">
+                            <label class="form-label d-block" for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+                {% endfor %}
+                <div class="mb-3">
+                    <label class="form-label d-block" for="skill-entry">Skills</label>
+                    <div class="tag-entry">
+                        <input type="text" id="skill-entry" class="tag-entry-input" placeholder="Type a skill...">
+                        <button type="button" id="add-skill" class="btn btn-primary btn-sm">+</button>
+                    </div>
+                    <ul class="tag-list" id="skill-list">
+                        {% for skill in profile_user.skills %}
+                            <li class="tag-pill" data-skill="{{ skill }}">
+                                <span>{{ skill }}</span>
+                                <button type="button" class="tag-remove remove-skill"
+                                    aria-label="Remove {{ skill }}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
-            {% for field in form %}
-            {% if field.name != 'headline' and field.name != 'skills' and field.name != 'education' %}
-            <div class="mb-3">
-                <label class="form-label d-block" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-                {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
-            </div>
-            {% endif %}
-            {% endfor %}
-            <button class="btn btn-primary" type="submit" form="profile-form">Save profile</button>
+                <div class="mb-3">
+                    <label class="form-label d-block" for="education-entry">Education</label>
+                    <details class="entry-details">
+                        <summary class="btn btn-primary btn-sm">+</summary>
+                        <div class="entry-form mt-2" id="education-entry">
+                            <input type="text" id="education-degree" placeholder="Degree Name" class="mb-2">
+                            <input type="text" id="education-institution" placeholder="School Name" class="mb-2">
+                            <input type="text" id="education-graduation-year" placeholder="Graduation Year"
+                                class="mb-2">
+                            <button type="button" id="add-education" class="btn btn-primary btn-sm">Add</button>
+                        </div>
+                    </details>
+                    <ul class="stacked-list" id="education-list">
+                        {% for entry in profile_user.education %}
+                            <li class="stacked-pill" data-education data-degree="{{ entry.degree }}"
+                                data-institution="{{ entry.institution }}"
+                                data-graduation-year="{{ entry.graduation_year }}">
+                                <div>
+                                    <strong>{{ entry.degree }}</strong>
+                                    {% if entry.institution %}, {{ entry.institution }}{% endif %}
+                                    {% if entry.graduation_year %} ({{ entry.graduation_year }}){% endif %}
+                                </div>
+                                <button type="button" class="tag-remove remove-education"
+                                    aria-label="Remove {{ entry.degree }}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <button class="btn btn-primary" type="submit">Save profile</button>
+            </form>
         </div>
         <div class="col-lg-5">
             <div class="card h-100 shadow-sm">
@@ -91,31 +115,159 @@
                     <h2 class="card-title mb-0">{{ profile_user.get_full_name|default:profile_user.username }}</h2>
                 </div>
                 <div class="card-body">
-                    {% if profile_user.headline %}<p class="lead">{{ profile_user.headline }}</p>{% endif %}
+                    {% if profile_user.headline %}
+                        <p class="lead">{{ profile_user.headline }}</p>
+                    {% endif %}
                     <h3 class="h5">My applications</h3>
                     {% if applications %}
-                    <ul class="list-unstyled mb-0">
-                        {% for application in applications %}
-                        <li class="d-flex justify-content-between align-items-center border-bottom py-2">
-                            <div>
-                                <strong>{{ application.job.title }}</strong>
-                                <div class="text-muted small">{{ application.created_at|date:"M j, Y" }}</div>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-secondary">{{ application.display_status }}</span>
-                                <form method="post" action="{% url 'jobs:withdraw_application' application.pk %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">Withdraw</button>
-                                </form>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                        <ul class="list-unstyled mb-0">
+                            {% for application in applications %}
+                                <li class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                    <div>
+                                        <strong>{{ application.job.title }}</strong>
+                                        <div class="text-muted small">
+                                            {{ application.created_at|date:"M j, Y" }}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-secondary">{{ application.display_status }}</span>
+                                        <form method="post"
+                                            action="{% url 'jobs:withdraw_application' application.pk %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                Withdraw
+                                            </button>
+                                        </form>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
                     {% else %}
-                    <p class="text-muted mb-0">Go apply to some jobs you bum</p>
+                        <p class="text-muted mb-0">Go apply to some jobs you bum</p>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-    {% endblock content %}
+{% endblock content %}
+
+    {% block extra_scripts %}
+    <script>
+        (() => {
+            const profileForm = document.getElementById("profile-form");
+            const skillsField = document.getElementById("id_skills");
+            const educationField = document.getElementById("id_education");
+            const skillList = document.getElementById("skill-list");
+            const educationList = document.getElementById("education-list");
+            let hasUnsavedChanges = false;
+            let isSubmitting = false;
+
+            const syncProfileFields = () => {
+                skillsField.value = Array.from(skillList.querySelectorAll("[data-skill]"))
+                    .map((item) => item.dataset.skill.trim())
+                    .filter(Boolean)
+                    .join(", ");
+                educationField.value = Array.from(educationList.querySelectorAll("[data-education]"))
+                    .map((item) => [
+                        item.dataset.degree,
+                        item.dataset.institution,
+                        item.dataset.graduationYear
+                    ].join(" | ").replace(/\s+\|\s+\|\s+$/, "").replace(/\s+\|\s+$/, ""))
+                    .join("\n");
+            };
+
+            const markChanged = () => {
+                hasUnsavedChanges = true;
+            };
+
+            const createSkill = (skill) => {
+                const item = document.createElement("li");
+                item.className = "tag-pill";
+                item.dataset.skill = skill;
+                item.innerHTML = `<span></span><button type="button" class="tag-remove remove-skill">
+                <i class="fas fa-times"></i></button>`;
+                item.querySelector("span").textContent = skill;
+                item.querySelector("button").setAttribute("aria-label", `Remove ${skill}`);
+                return item;
+            };
+
+            const createEducation = (degree, institution, graduationYear) => {
+                const item = document.createElement("li");
+                item.className = "stacked-pill";
+                item.dataset.education = "";
+                item.dataset.degree = degree;
+                item.dataset.institution = institution;
+                item.dataset.graduationYear = graduationYear;
+                item.innerHTML = `<div><strong></strong></div><button type="button"
+                class="tag-remove remove-education" aria-label="Remove education">
+                <i class="fas fa-times"></i></button>`;
+                item.querySelector("strong").textContent = degree;
+                const details = [institution, graduationYear].filter(Boolean);
+                if (details.length) {
+                    item.querySelector("div").append(`, ${details[0]}`);
+                    if (details[1]) item.querySelector("div").append(` (${details[1]})`);
+                }
+                return item;
+            };
+
+            document.getElementById("add-skill").addEventListener("click", () => {
+                const input = document.getElementById("skill-entry");
+                const skill = input.value.trim();
+                const existingSkills = Array.from(skillList.querySelectorAll("[data-skill]"))
+                    .map((item) => item.dataset.skill.toLowerCase());
+                if (!skill || existingSkills.includes(skill.toLowerCase())) return;
+                skillList.appendChild(createSkill(skill));
+                input.value = "";
+                syncProfileFields();
+                markChanged();
+            });
+
+            skillList.addEventListener("click", (event) => {
+                if (!event.target.closest(".remove-skill")) return;
+                event.target.closest("[data-skill]").remove();
+                syncProfileFields();
+                markChanged();
+            });
+
+            document.getElementById("add-education").addEventListener("click", () => {
+                const degreeInput = document.getElementById("education-degree");
+                const institutionInput = document.getElementById("education-institution");
+                const graduationYearInput = document.getElementById("education-graduation-year");
+                const degree = degreeInput.value.trim();
+                if (!degree) return;
+                educationList.appendChild(createEducation(
+                    degree,
+                    institutionInput.value.trim(),
+                    graduationYearInput.value.trim()
+                ));
+                degreeInput.value = "";
+                institutionInput.value = "";
+                graduationYearInput.value = "";
+                syncProfileFields();
+                markChanged();
+            });
+
+            educationList.addEventListener("click", (event) => {
+                if (!event.target.closest(".remove-education")) return;
+                event.target.closest("[data-education]").remove();
+                syncProfileFields();
+                markChanged();
+            });
+
+            profileForm.addEventListener("input", markChanged);
+            profileForm.addEventListener("change", markChanged);
+            profileForm.addEventListener("submit", () => {
+                syncProfileFields();
+                isSubmitting = true;
+            });
+
+            window.addEventListener("beforeunload", (event) => {
+                if (!hasUnsavedChanges || isSubmitting) return;
+                event.preventDefault();
+                event.returnValue = "You have unsaved profile changes.";
+            });
+
+            syncProfileFields();
+        })();
+    </script>
+    {% endblock extra_scripts %}
