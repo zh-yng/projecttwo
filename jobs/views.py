@@ -221,3 +221,14 @@ def apply_to_job(request, pk):
 			"work_experience": "\n".join(str(w) for w in (user.work_experience or [])),
 		})
 	return render(request, "jobs/application_form.html", {"form": form, "job": job})
+
+@recruiter_required
+def delete_job(request, pk):
+	if request.method != "POST":
+		raise Http404 
+	job = get_object_or_404(Job, pk=pk,recruiter=request.user)
+	title=job.title 
+	job.delete()
+	messages.success(request, f'"{title}" has been deleted.')
+	return redirect("jobs:dashboard")
+

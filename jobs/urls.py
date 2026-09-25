@@ -16,4 +16,6 @@ urlpatterns = [
     path("recruiter/applications/<int:pk>/delete/", views.delete_application, name="delete_application"),
     path("<int:pk>/apply/", views.apply_to_job, name="apply"),
     path("applications/<int:pk>/withdraw/", views.withdraw_application, name="withdraw_application"),
+    path("recruiter/<int:pk>/delete/", views.delete_job, name="delete"),
+
 ]
