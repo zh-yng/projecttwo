@@ -19,6 +19,9 @@
                 </div>
                 <div class="d-flex align-items-start gap-2">
                     <a class="btn btn-outline-dark" href="{% url 'jobs:edit' job.pk %}">Edit</a>
+                    <a class="btn btn-outline-primary" href="{% url 'jobs:application_board' job.pk %}">
+                        Applicants
+                    </a>
                     <form method="post" action="{% url 'jobs:close' job.pk %}">
                         {% csrf_token %}
                         <button class="btn btn-outline-danger" type="submit">Close</button>

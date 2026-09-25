@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from accounts.models import User
 
-from .models import Job
+from .models import Application, Job
 
 
 class JobViewTests(TestCase):
@@ -130,3 +130,76 @@ class JobViewTests(TestCase):
 		response = self.client.get(reverse("jobs:list"))
 
 		self.assertNotContains(response, self.job.title)
+
+	def test_recruiter_can_view_per_job_application_board(self):
+		applicant = User.objects.create_user(
+			username="applicant",
+			password="test-password",
+			role=User.Role.JOB_SEEKER,
+		)
+		application = Application.objects.create(
+			job=self.job,
+			applicant=applicant,
+			full_name="Jamie Doe",
+			email="jamie@example.com",
+		)
+		self.client.force_login(self.recruiter)
+
+		response = self.client.get(reverse("jobs:application_board", args=[self.job.pk]))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "Applied")
+		self.assertContains(response, application.full_name)
+
+	def test_recruiter_can_move_application_and_close_is_not_delete(self):
+		applicant = User.objects.create_user(
+			username="applicant",
+			password="test-password",
+			role=User.Role.JOB_SEEKER,
+		)
+		application = Application.objects.create(
+			job=self.job,
+			applicant=applicant,
+			full_name="Jamie Doe",
+			email="jamie@example.com",
+		)
+		self.client.force_login(self.recruiter)
+
+		response = self.client.post(
+			reverse("jobs:update_application_status", args=[application.pk]),
+			{"status": Application.Status.CLOSED},
+		)
+
+		self.assertRedirects(response, reverse("jobs:application_board", args=[self.job.pk]))
+		application.refresh_from_db()
+		self.assertEqual(application.status, Application.Status.CLOSED)
+
+		delete_response = self.client.post(
+			reverse("jobs:delete_application", args=[application.pk]),
+		)
+		self.assertRedirects(delete_response, reverse("jobs:application_board", args=[self.job.pk]))
+		application.refresh_from_db()
+		self.assertEqual(application.status, Application.Status.DELETED)
+
+	def test_recruiter_cannot_manage_another_recruiters_application(self):
+		applicant = User.objects.create_user(
+			username="applicant",
+			password="test-password",
+			role=User.Role.JOB_SEEKER,
+		)
+		application = Application.objects.create(
+			job=self.job,
+			applicant=applicant,
+			full_name="Jamie Doe",
+			email="jamie@example.com",
+		)
+		self.client.force_login(self.other_recruiter)
+
+		response = self.client.post(
+			reverse("jobs:update_application_status", args=[application.pk]),
+			{"status": Application.Status.SCREENED},
+		)
+
+		self.assertEqual(response.status_code, 404)
+		application.refresh_from_db()
+		self.assertEqual(application.status, Application.Status.APPLIED)
