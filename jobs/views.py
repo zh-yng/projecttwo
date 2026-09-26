@@ -3,9 +3,10 @@ from functools import wraps
 # Create your views here.
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from .services import generate_application_note
 
 from accounts.models import User
 
@@ -198,6 +199,16 @@ def apply_to_job(request, pk):
 		messages.info(request, "You already applied for this position.")
 		return redirect("jobs:detail", pk=pk)
 
+	if request.method == "POST" and request.POST.get("action") == "generate_note":
+		try:
+			generate_note = generate_application_note(job, request.user)
+		except Exception:
+			messages.error(request, "Couldn't generate a note right now.")
+			generate_note = request.POST.get("cover_letter", "")
+		initial = request.POST.dict()
+		initial["cover_letter"] = generate_note
+		form = ApplicationForm(initial=initial)
+		return render(request, "jobs/application_form.html", {"form":form, "job": job})
 	if request.method == "POST":
 		form = ApplicationForm(request.POST)
 		if form.is_valid():
@@ -232,3 +243,24 @@ def delete_job(request, pk):
 	messages.success(request, f'"{title}" has been deleted.')
 	return redirect("jobs:dashboard")
 
+
+@login_required
+def generate_note(request, pk):
+	if request.method != "POST":
+		raise Http404
+
+	job = get_object_or_404(_active_jobs(), pk=pk)
+	try:
+		note = generate_application_note(job, request.user)
+	except Exception:
+		return JsonResponse({"error": "Couldn't generate a note right now."}, status=502)
+	return JsonResponse({"note":note})
+
+@recruiter_required
+def application_detail(request, pk):
+	application = get_object_or_404(
+		Application,
+		pk=pk,
+		job__recruiter=request.user,
+	)
+	return render(request, "jobs/application_detail.html", {"application":application})

@@ -14,48 +14,52 @@
 
     <div class="kanban-board">
         {% for stage in stages %}
-            <section class="kanban-column">
-                <div class="card h-100 bg-light">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <strong>{{ stage.label }}</strong>
-                        <span class="badge text-bg-secondary">{{ stage.applications|length }}</span>
-                    </div>
-                    <div class="card-body">
-                        {% for application in stage.applications %}
-                            <article class="card mb-3 shadow-sm">
-                                <div class="card-body">
-                                    <h2 class="h6 mb-1">{{ application.full_name }}</h2>
-                                    <p class="small text-muted mb-2">{{ application.email }}</p>
-                                    {% if application.cover_letter %}
-                                        <p class="small mb-3">{{ application.cover_letter|truncatewords:20 }}</p>
-                                    {% endif %}
-                                    <form method="post" action="{% url 'jobs:update_application_status' application.pk %}">
-                                        {% csrf_token %}
-                                        <label class="visually-hidden" for="stage-{{ application.pk }}">Move applicant</label>
-                                        <select id="stage-{{ application.pk }}" name="status"
-                                            class="form-select form-select-sm mb-2"
-                                            onchange="this.form.submit()">
-                                            {% for option in stages %}
-                                                <option value="{{ option.key }}" {% if option.key == stage.key %}selected{% endif %}>
-                                                    {{ option.label }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </form>
-                                    <form method="post" action="{% url 'jobs:delete_application' application.pk %}">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                                            Delete application
-                                        </button>
-                                    </form>
-                                </div>
-                            </article>
-                        {% empty %}
-                            <p class="small text-muted mb-0">No applicants in this stage.</p>
-                        {% endfor %}
-                    </div>
+        <section class="kanban-column">
+            <div class="card h-100 bg-light">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>{{ stage.label }}</strong>
+                    <span class="badge text-bg-secondary">{{ stage.applications|length }}</span>
                 </div>
-            </section>
+                <div class="card-body">
+                    {% for application in stage.applications %}
+                    <article class="card mb-3 shadow-sm">
+                        <div class="card-body">
+                            <h2 class="h6 mb-1">
+                                <a href="{% url 'jobs:application_detail' application.pk %}"
+                                    class="text-decoration-none">
+                                    {{ application.full_name }}
+                                </a>
+                            </h2>
+                            <p class="small text-muted mb-2">{{ application.email }}</p>
+                            {% if application.cover_letter %}
+                            <p class="small mb-3">{{ application.cover_letter|truncatewords:20 }}</p>
+                            {% endif %}
+                            <form method="post" action="{% url 'jobs:update_application_status' application.pk %}">
+                                {% csrf_token %}
+                                <label class="visually-hidden" for="stage-{{ application.pk }}">Move applicant</label>
+                                <select id="stage-{{ application.pk }}" name="status"
+                                    class="form-select form-select-sm mb-2" onchange="this.form.submit()">
+                                    {% for option in stages %}
+                                    <option value="{{ option.key }}" {% if option.key == stage.key %}selected{% endif %}>
+                                        {{ option.label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                            <form method="post" action="{% url 'jobs:delete_application' application.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                    Delete application
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                    {% empty %}
+                    <p class="small text-muted mb-0">No applicants in this stage.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
         {% endfor %}
     </div>
 </div>
