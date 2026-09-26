@@ -24,7 +24,9 @@ class User(AbstractUser):
 
     headline=models.CharField(max_length=255, blank=True, null=True)
     middle_name = models.CharField(max_length=150, blank=True)
-    skills=models.JSONField(blank=True, null=True)
+    skills = models.JSONField(blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True)
+    projects = models.TextField(blank=True)
 
     # JSON field. remember to specify the structure (i.e. institution + education type)!!!
     education=models.JSONField(blank=True, null=True)
@@ -39,6 +41,8 @@ class User(AbstractUser):
     show_education = models.BooleanField(default=True)
     show_work_experience = models.BooleanField(default=True)
     show_links = models.BooleanField(default=True)
+    show_location = models.BooleanField(default=True)
+    show_projects = models.BooleanField(default=True)
 
     role = models.CharField(
         max_length=20, 

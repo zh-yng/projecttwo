@@ -22,6 +22,8 @@ class ProfileForm(forms.ModelForm):
         label="Show work experience",
     )
     show_links = forms.BooleanField(required=False, label="Show links")
+    show_location = forms.BooleanField(required=False, label="Show location")
+    show_projects = forms.BooleanField(required=False, label="Show projects")
     skills = forms.CharField(
         required=False,
         widget=forms.HiddenInput(),
@@ -43,7 +45,17 @@ class ProfileForm(forms.ModelForm):
         widget=forms.Textarea(attrs={"rows": 3}),
         help_text="1 URL per line.",
     )
-
+    location = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. Atlanta, GA"}),
+        help_text="Your location (e.g. city, state).",
+    )
+    projects = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4}),
+        help_text="1 project per line",
+    )
+    
     class Meta:
         model = User
         fields = (
@@ -52,17 +64,22 @@ class ProfileForm(forms.ModelForm):
             "middle_name",
             "last_name",
             "headline",
+            "location",
             "skills",
             "education",
             "work_experience",
+            "projects",
             "links",
             "profile_visible_to_recruiters",
             "show_headline",
+            "show_location",
             "show_skills",
             "show_education",
             "show_work_experience",
+            "show_projects",
             "show_links",
         )
+        
         widgets = {
             "headline": forms.TextInput(
                 attrs={"placeholder": "e.g. Full-stack developer seeking new opportunities"}
