@@ -3,9 +3,10 @@ from functools import wraps
 # Create your views here.
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from .services import generate_application_note
 
 from accounts.models import User
 
@@ -67,6 +68,87 @@ def recruiter_dashboard(request):
 
 
 @recruiter_required
+def application_board(request, pk):
+	job = get_object_or_404(Job, pk=pk, recruiter=request.user)
+	applications = (
+		Application.objects.filter(job=job)
+		.exclude(status=Application.Status.DELETED)
+		.exclude(status=Application.Status.WITHDRAWN)
+		.select_related("applicant")
+		.order_by("-updated_at")
+	)
+	stage_definitions = [
+		(Application.Status.APPLIED, "Applied", (Application.Status.APPLIED,)),
+		(Application.Status.SCREENED, "Review", (Application.Status.SCREENED,)),
+		(Application.Status.INTERVIEWED, "Interview", (Application.Status.INTERVIEWED,)),
+		(
+			Application.Status.OFFERED,
+			"Offer",
+			(Application.Status.OFFERED, Application.Status.HIRED),
+		),
+		(Application.Status.CLOSED, "Closed", (Application.Status.CLOSED,)),
+	]
+	stages = [
+		{
+			"key": stage,
+			"label": label,
+			"applications": applications.filter(status__in=statuses),
+		}
+		for stage, label, statuses in stage_definitions
+	]
+	return render(
+		request,
+		"jobs/application_board.html",
+		{
+			"job": job,
+			"stages": stages,
+		},
+	)
+
+
+@recruiter_required
+def update_application_status(request, pk):
+	if request.method != "POST":
+		raise Http404
+	application = get_object_or_404(
+		Application,
+		pk=pk,
+		job__recruiter=request.user,
+	)
+	status = request.POST.get("status")
+	valid_statuses = {
+		Application.Status.APPLIED,
+		Application.Status.SCREENED,
+		Application.Status.INTERVIEWED,
+		Application.Status.OFFERED,
+		Application.Status.HIRED,
+		Application.Status.CLOSED,
+	}
+	if status not in valid_statuses:
+		messages.error(request, "That hiring stage is not available.")
+	else:
+		application.status = status
+		application.save(update_fields=("status", "updated_at"))
+		messages.success(request, "Applicant stage updated.")
+	return redirect("jobs:application_board", pk=application.job_id)
+
+
+@recruiter_required
+def delete_application(request, pk):
+	if request.method != "POST":
+		raise Http404
+	application = get_object_or_404(
+		Application,
+		pk=pk,
+		job__recruiter=request.user,
+	)
+	application.status = Application.Status.DELETED
+	application.save(update_fields=("status", "updated_at"))
+	messages.success(request, "The application was removed from the hiring board.")
+	return redirect("jobs:application_board", pk=application.job_id)
+
+
+@recruiter_required
 def create_job(request):
 	form = JobForm(request.POST or None)
 	if request.method == "POST" and form.is_valid():
@@ -117,6 +199,16 @@ def apply_to_job(request, pk):
 		messages.info(request, "You already applied for this position.")
 		return redirect("jobs:detail", pk=pk)
 
+	if request.method == "POST" and request.POST.get("action") == "generate_note":
+		try:
+			generate_note = generate_application_note(job, request.user)
+		except Exception:
+			messages.error(request, "Couldn't generate a note right now.")
+			generate_note = request.POST.get("cover_letter", "")
+		initial = request.POST.dict()
+		initial["cover_letter"] = generate_note
+		form = ApplicationForm(initial=initial)
+		return render(request, "jobs/application_form.html", {"form":form, "job": job})
 	if request.method == "POST":
 		form = ApplicationForm(request.POST)
 		if form.is_valid():
@@ -156,3 +248,34 @@ def job_applicants(request, pk):
 def review_application(request, pk): ##user story 20
 	application = get_object_or_404(Application, pk=pk, job__recruiter=request.user)
 	return render(request, "jobs/review_application.html", {"application": application})
+@recruiter_required
+def delete_job(request, pk):
+	if request.method != "POST":
+		raise Http404 
+	job = get_object_or_404(Job, pk=pk,recruiter=request.user)
+	title=job.title 
+	job.delete()
+	messages.success(request, f'"{title}" has been deleted.')
+	return redirect("jobs:dashboard")
+
+
+@login_required
+def generate_note(request, pk):
+	if request.method != "POST":
+		raise Http404
+
+	job = get_object_or_404(_active_jobs(), pk=pk)
+	try:
+		note = generate_application_note(job, request.user)
+	except Exception:
+		return JsonResponse({"error": "Couldn't generate a note right now."}, status=502)
+	return JsonResponse({"note":note})
+
+@recruiter_required
+def application_detail(request, pk):
+	application = get_object_or_404(
+		Application,
+		pk=pk,
+		job__recruiter=request.user,
+	)
+	return render(request, "jobs/application_detail.html", {"application":application})

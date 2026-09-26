@@ -19,9 +19,16 @@
                 </div>
                 <div class="d-flex align-items-start gap-2">
                     <a class="btn btn-outline-dark" href="{% url 'jobs:edit' job.pk %}">Edit</a>
+                    <a class="btn btn-outline-primary" href="{% url 'jobs:application_board' job.pk %}">
+                        Applicants
+                    </a>
                     <form method="post" action="{% url 'jobs:close' job.pk %}">
                         {% csrf_token %}
                         <button class="btn btn-outline-danger" type="submit">Close</button>
+                    </form>
+                    <form method="post" action="{% url 'jobs:delete' job.pk %}">
+                        {% csrf_token %}
+                        <button class="btn btn-danger" type="submit">Delete</button>
                     </form>
                 </div>
             </div>
@@ -35,9 +42,18 @@
         <h2 class="h3 mb-3">Closed Jobs</h2>
         {% for job in closed_jobs %}
         <article class="card shadow-sm mb-3">
-            <div class="card-body">
-                <h3 class="h4 mb-1">{{ job.title }}</h3>
+            <div class="card-body d-flex justify-content-between gap-3">
+                <div>
+                    <h3 class="h4 mb-1">{{ job.title }}</h3>
                 <p class="text-muted mb-0">{{ job.get_status_display }} · Updated {{ job.updated_at|date:"M j, Y" }}</p>
+                </div>
+                <div class="d-flex align-items-start gap-2">
+                    <form method="post" action="{% url 'jobs:delete' job.pk %}"
+                    onsubmit="return confirm('Delete this job permanently?');">
+                    {% csrf_token %}
+                    <button class="btn btn-danger" type="submit">Delete</button>
+                </form>
+                </div>
             </div>
         </article>
         {% empty %}

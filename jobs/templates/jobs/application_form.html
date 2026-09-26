@@ -6,7 +6,26 @@
             <h1>Apply for {{ job.title }}</h1>
             <form method="post" class="mt-4">
                 {% csrf_token %}
-                {{ form.as_p }}
+                {% for field in form %}
+                {% if field.name != "cover_letter" %}
+                <p>
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {{ field.errors }}
+                </p>
+                {% endif %}
+                {% endfor %}
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        {{ form.cover_letter.label_tag }}
+                        <button type="submit" name="action" value="generate_note" class="btn btn-sm btn-outline-dark">
+                            Generate personalized note
+                        </button>
+                    </div>
+                    {{ form.cover_letter }}
+                    {{ form.cover_letter.errors }}
+                </div>
                 <button class="btn btn-dark" type="submit">Submit application</button>
                 <a class="btn  btn-link" href="{% url 'jobs:detail' job.pk %}">Cancel</a>
             </form>
