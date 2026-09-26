@@ -140,3 +140,19 @@ def apply_to_job(request, pk):
 			"work_experience": "\n".join(str(w) for w in (user.work_experience or [])),
 		})
 	return render(request, "jobs/application_form.html", {"form": form, "job": job})
+
+@recruiter_required 
+def job_applicants(request, pk):
+    job = get_object_or_404(Job, pk=pk, recruiter=request.user)
+    application = (
+		Application.objects.filter(job=job)
+		.exclude(status=Application.Status.WITHDRAWN)
+		.select_related("applicant")
+		.order_by("-created_at")
+	)
+    return render(request, "jobs/job_applicants.html", {"job": job, "applications": application})
+
+@recruiter_required
+def review_application(request, pk): ##user story 20
+	application = get_object_or_404(Application, pk=pk, job__recruiter=request.user)
+	return render(request, "jobs/review_application.html", {"application": application})
