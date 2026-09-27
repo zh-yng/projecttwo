@@ -12,6 +12,13 @@
         </span>
     </div>
 
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-3">{{ search_form.q }}</div>
+        <div class="col-md-3">{{ search_form.skill }}</div>
+        <div class="col-md-3">{{ search_form.education }}</div>
+        <div class="col-md-2">{{ search_form.experience }}</div>
+        <div class="col-md-1"><button class="btn btn-dark w-100" type="submit">Search</button></div>
+    </form>
     <div class="kanban-board">
         {% for stage in stages %}
         <section class="kanban-column">

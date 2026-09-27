@@ -9,6 +9,13 @@
         </div>
         <a class="btn btn-outline-dark" href="{% url 'jobs:dashboard' %}">Back to dashboard</a>
     </div>
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-4">{{ form.q }}</div>
+        <div class="col-md-3">{{ form.skill }}</div>
+        <div class="col-md-2">{{ form.education_type }}</div>
+        <div class="col-md-2">{{ form.experience_type }}</div>
+        <div class="col-md-1"><button class="btn btn-dark w-100" type="submit">Search</button></div>
+    </form>
     <div class="row g-4">
         {% for candidate in candidates %}
         <div class="col-md-6 col-xl-4">

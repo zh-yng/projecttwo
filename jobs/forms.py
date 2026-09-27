@@ -43,3 +43,14 @@ class ApplicationForm(forms.ModelForm):
             "work_experience": forms.Textarea(attrs={"rows": 3}),
             "cover_letter": forms.Textarea(attrs={"rows": 6}),
         }
+
+class ApplicationSearchForm(forms.Form):
+    q = forms.CharField(required=False, label="Name", widget=forms.TextInput(
+            attrs={"placeholder": "Search by name", "class": "form-control"}))
+    skill = forms.CharField(required=False, widget=forms.TextInput(
+            attrs={"placeholder": "e.g. Python", "class": "form-control"}))
+    education = forms.CharField(required=False, widget=forms.TextInput(
+            attrs={"placeholder": "e.g. Bachelors", "class": "form-control"}))
+    experience = forms.CharField(required=False, widget=forms.TextInput(
+            attrs={"placeholder": "e.g. Senior Developer", "class": "form-control"}))
+        

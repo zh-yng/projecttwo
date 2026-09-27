@@ -184,3 +184,20 @@ class CustomErrorList(ErrorList):
         if not self:
             return ''
         return mark_safe(''.join([f'<div class="alert alert-danger" role="alert">{e}</div>' for e in self]))
+
+class CandidateSearchForm(forms.Form):
+    q = forms.CharField(required=False, label="Name", widget=forms.TextInput(
+        attrs={"placeholder": "Search by name", "class": "form-control"}))
+    skill = forms.CharField(required=False, widget=forms.TextInput(
+        attrs={"placeholder": "e.g. Python", "class": "form-control"}))
+    education_type = forms.ChoiceField(
+        required=False,
+        choices=[("", "Any education level")] + User.EducationType.choices,
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    experience_type = forms.ChoiceField(
+        required=False,
+        choices=[("", "Any experience level")] + User.WorkExperienceType.choices,
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+

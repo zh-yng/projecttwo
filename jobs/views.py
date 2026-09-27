@@ -10,7 +10,7 @@ from .services import generate_application_note
 
 from accounts.models import User
 
-from .forms import JobForm, ApplicationForm
+from .forms import JobForm, ApplicationForm, ApplicationSearchForm
 from .models import Job, Application
 
 
@@ -70,6 +70,7 @@ def recruiter_dashboard(request):
 @recruiter_required
 def application_board(request, pk):
 	job = get_object_or_404(Job, pk=pk, recruiter=request.user)
+	search_form = ApplicationSearchForm(request.GET or None)
 	applications = (
 		Application.objects.filter(job=job)
 		.exclude(status=Application.Status.DELETED)
@@ -77,6 +78,22 @@ def application_board(request, pk):
 		.select_related("applicant")
 		.order_by("-updated_at")
 	)
+
+	if search_form.is_valid():
+		name = search_form.cleaned_data["q"].strip()
+		skill = search_form.cleaned_data["skill"].strip()
+		education = search_form.cleaned_data["education"].strip()
+		experience = search_form.cleaned_data["experience"].strip()
+
+		if name:
+			applications = applications.filter(full_name__icontains=name)
+		if skill:
+			applications = applications.filter(skills__icontains=skill)
+		if education:
+			applications = applications.filter(education__icontains=education)
+		if experience:
+			applications = applications.filter(work_experience__icontains=experience)
+
 	stage_definitions = [
 		(Application.Status.APPLIED, "Applied", (Application.Status.APPLIED,)),
 		(Application.Status.SCREENED, "Review", (Application.Status.SCREENED,)),
@@ -102,6 +119,7 @@ def application_board(request, pk):
 		{
 			"job": job,
 			"stages": stages,
+			"search_form": search_form,
 		},
 	)
 

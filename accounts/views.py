@@ -3,10 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
+from django.db import models
 
-from .forms import ProfileForm, CustomUserCreationForm, CustomErrorList
+from .forms import ProfileForm, CustomUserCreationForm, CustomErrorList, CandidateSearchForm
 from .models import User
 from jobs.models import Application
+
 
 
 @login_required
@@ -50,14 +52,65 @@ def recruiter_required(view_func):
 
 @recruiter_required
 def recruiter_candidates(request):
+    form = CandidateSearchForm(request.GET or None)
     candidates = User.objects.filter(
         role=User.Role.JOB_SEEKER,
         profile_visible_to_recruiters=True,
     ).order_by("username")
+
+    if form.is_valid():
+        name = form.cleaned_data["q"].strip().lower()
+        skill = form.cleaned_data["skill"].strip().lower()
+        education_type = form.cleaned_data["eduation_type"]
+        experience_type = form.cleaned_data["experience_type"]
+
+        if name:
+            candidates = candidates.filter(
+                models.Q(first_name__icontains=name)
+                | models.Q(last_name__icontains=name)
+                | models.Q(username__icontains=name)
+            )
+        if skill:
+            matches = []
+            for c in candidates:
+                found = False
+                for s in (c.skills or []):
+                    if skill in s.lower():
+                        found = True
+                if found:
+                    matches.append(c)
+            candidates = matches
+
+        if education_type:
+            label = User.EducationType(education_type).label.lower()
+            matches = []
+            for c in candidates:
+                found = False
+                for e in (c.education or []):
+                    degree = e.get("degree", "").lower()
+                    if label in degree:
+                        found = True
+                if found:
+                    matches.append(c)
+            candidate = matches
+
+        if experience_type:
+            label = User.WorkExperienceType(experience_type).label.lower()
+            matches = []
+            for c in candidates:
+                found = False
+                for w in (c.work_experience or []):
+                    text = (w.get("title", "") + w.get("description", "")).lower()
+                    if label in text:
+                        found = True
+                if found:
+                    matches.append(c)
+            candidates = matches
+
     for candidate in candidates:
         candidate.visible_headline = candidate.headline if candidate.show_headline else ""
         candidate.visible_skills = candidate.skills if candidate.show_skills else []
-    return render(request, "accounts/recruiter_candidates.html", {"candidates": candidates})
+    return render(request, "accounts/recruiter_candidates.html", {"candidates": candidates, "form": form})
 
 
 @recruiter_required
