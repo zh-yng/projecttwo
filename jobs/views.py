@@ -247,7 +247,10 @@ def apply_to_job(request, pk):
 				f"{e.get('degree')} - {e.get('institution')} ({e.get('graduation_year')})"
 				for e in (user.education or [])
 			),
-			"work_experience": "\n".join(str(w) for w in (user.work_experience or [])),
+			"work_experience": "\n".join(
+				" | ".join(filter(None, [w.get("title"), w.get("company"), w.get("dates"), w.get("description")]))
+				for w in (user.work_experience or [])
+			),
 		})
 	return render(request, "jobs/application_form.html", {"form": form, "job": job})
 

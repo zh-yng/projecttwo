@@ -61,7 +61,7 @@ def recruiter_candidates(request):
     if form.is_valid():
         name = form.cleaned_data["q"].strip().lower()
         skill = form.cleaned_data["skill"].strip().lower()
-        education_type = form.cleaned_data["eduation_type"]
+        education_type = form.cleaned_data["education_type"]
         experience_type = form.cleaned_data["experience_type"]
 
         if name:
